@@ -4,9 +4,11 @@
  * and open the template in the editor.
  */
 
-import javax.swing.JRadioButton;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
+import burp.api.montoya.MontoyaApi;
+
+import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  *
@@ -14,11 +16,12 @@ import javax.swing.JTextField;
  */
 public class BurpTab extends javax.swing.JPanel {
 
+    private static final String SETTINGS_KEY = "BetterHeader.settings.";
     /**
      * Creates new form BurpTab
      */
-    public BurpTab() {
-        initComponents();
+    public BurpTab(MontoyaApi api) {
+        initComponents(api);
     }
 
     /**
@@ -28,7 +31,8 @@ public class BurpTab extends javax.swing.JPanel {
      */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    private void initComponents(MontoyaApi api) {
+
 
         buttonGroup1 = new javax.swing.ButtonGroup();
         headerValueLabel = new javax.swing.JLabel();
@@ -45,34 +49,30 @@ public class BurpTab extends javax.swing.JPanel {
         regExpText = new javax.swing.JTextField();
         jPanel1 = new javax.swing.JPanel();
         jRadioButton1 = new javax.swing.JRadioButton();
+        JCheckBox addbox = new JCheckBox();
+        JCheckBox replacebox = new JCheckBox();
 
         headerValueLabel.setText("Header value");
 
         headerNameLabel.setText("Header name");
 
-        headerValuePrefixText.setText("Bearer ");
+        headerValuePrefixText.setText(api.persistence().preferences().getString(SETTINGS_KEY+"HeaderPrefix"));
         headerValuePrefixText.setToolTipText("Don't forget the space");
-        headerValuePrefixText.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                headerValuePrefixTextActionPerformed(evt);
-            }
-        });
+        headerValuePrefixText.addActionListener(evt -> api.persistence().preferences().setString(BurpTab.SETTINGS_KEY+"HeaderPrefix", headerValuePrefixText.getText()));
 
         headerValuePrefixLabel.setText("Header value (prefix)");
 
-        headerNameText.setText("Authorization");
-        headerNameText.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                headerNameTextActionPerformed(evt);
-            }
-        });
+        headerNameText.setText(api.persistence().preferences().getString(SETTINGS_KEY+"HeaderName"));
+        headerNameText.addActionListener(evt -> api.persistence().preferences().setString(BurpTab.SETTINGS_KEY+"HeaderName", headerNameText.getText()));
 
         finalResultLabel.setText("The new header will look like this");
         finalResultLabel.setVerticalAlignment(javax.swing.SwingConstants.TOP);
 
         hardCodedText.setColumns(20);
         hardCodedText.setRows(5);
+        //hardCodedText.getDocument().addDocumentListener(new HCDocumentListener());
         jScrollPane1.setViewportView(hardCodedText);
+        //jScrollPane1.addPropertyChangeListener("ViewportView", e -> api.persistence().preferences().setString(SETTINGS_KEY+"HardcodedText",hardCodedText.getText()));
 
         updatePreviewButton.setText("Update Preview");
         updatePreviewButton.addActionListener(new java.awt.event.ActionListener() {
@@ -83,21 +83,14 @@ public class BurpTab extends javax.swing.JPanel {
 
         buttonGroup1.add(regExpRadio);
         regExpRadio.setText("Regular Expression");
-        regExpRadio.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                regExpRadioActionPerformed(evt);
-            }
-        });
+        regExpRadio.addActionListener(evt -> api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsRegex", regExpRadio.isSelected()));
 
         buttonGroup1.add(hardCodedRadio);
         hardCodedRadio.setText("Hard-Coded Value");
+        hardCodedRadio.addActionListener(evt -> api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsHardcoded", hardCodedRadio.isSelected()));
 
-        regExpText.setText("jTextField1");
-        regExpText.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                regExpTextActionPerformed(evt);
-            }
-        });
+        regExpText.setText(api.persistence().preferences().getString(SETTINGS_KEY+"RegexText"));
+        regExpText.addActionListener(evt -> api.persistence().preferences().setString(SETTINGS_KEY+"RegexText", regExpText.getText()));
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -111,12 +104,11 @@ public class BurpTab extends javax.swing.JPanel {
         );
 
         buttonGroup1.add(jRadioButton1);
-        jRadioButton1.setSelected(true);
+        jRadioButton1.setSelected(false);
         jRadioButton1.setText("Disable custom header");
-        jRadioButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton1ActionPerformed(evt);
-            }
+        jRadioButton1.addActionListener(evt -> {
+            api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsRegex", false);
+            api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsHardcoded", false);
         });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);

@@ -1,25 +1,36 @@
+import burp.api.montoya.MontoyaApi;
 import burp.api.montoya.http.handler.*;
+import burp.api.montoya.http.message.requests.HttpRequest;
 
+import java.util.ArrayList;
+import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 public class HTTPHandler implements HttpHandler {
+
+    private static final String SETTINGS_KEY = "BetterHeader.settings.";
+    private final MontoyaApi api;
+
+    public HTTPHandler (MontoyaApi api){
+        this.api = api;
+    }
     @Override
     public RequestToBeSentAction handleHttpRequestToBeSent(HttpRequestToBeSent httpRequestToBeSent) {
         String token = null;
-
-        if (tab.useHardCoded()) {
+        if (api.persistence().preferences().getBoolean(SETTINGS_KEY+"IsHardcoded")) {
             // token has priority over regexp
-            token = tab.getHardCodedText();
-        } else if (tab.useRegExp()) {
+            token = api.persistence().preferences().getString(SETTINGS_KEY+"HardcodedText");
+        /*} else if (api.persistence().preferences().getBoolean(SETTINGS_KEY+"IsRegex")) {
             if (macroItems.length == 0) {
-                this.callbacks.issueAlert("No macro configured or macro did not return any response");
+                api.logging().raiseErrorEvent("No macro configured or macro did not return any response");
                 return null;
-            }String regexp = tab.getRegExpText();
+            }String regexp = api.persistence().preferences().getString(SETTINGS_KEY+"RegexText");
+            Pattern p;
             try {
                 p = Pattern.compile(regexp);
             } catch (PatternSyntaxException e) {
-                this.callbacks.issueAlert("Syntax error in regular expression (see extension error window)");
-                callbacks.printError(e.toString());
+                api.logging().raiseErrorEvent("Syntax error in regular expression (see extension error window)");
+                api.logging().logToError(e);
                 return null;
             }
 
@@ -38,35 +49,33 @@ public class HTTPHandler implements HttpHandler {
                         break;
                     }
                 }
-            }
+            }*/
         } else { // using the 'disable' button
             return null;
         }
 
         if (token == null) {
             // nothing found: failing silently to avoid polluting the logs
-            callbacks.printError("No token found");
+            api.logging().raiseErrorEvent("No token found");
             return null;
         }
-        String headerName = tab.getHeaderName();
-        String headerValuePrefix = tab.getHeaderValuePrefix();
+        String headerName = api.persistence().preferences().getString(SETTINGS_KEY+"HeaderName");
+        String headerValuePrefix = api.persistence().preferences().getString(SETTINGS_KEY+"HeaderPrefix");
 
-        IRequestInfo rqInfo = helpers.analyzeRequest(currentRequest);
-        // retrieve all headers
-        ArrayList<String> headers = (ArrayList<String>) rqInfo.getHeaders();
-        for (int i = 0; i < headers.size(); i++) {
-            if (((String) headers.get(i)).startsWith(headerName + ": " + headerValuePrefix)) {
-                // there could be more than one header like this; remove and continue
-                headers.remove(i);
-            }
-        }
-        String newHeader = headerName + ": " + headerValuePrefix + token;
-        headers.add(newHeader);
-        callbacks.printOutput("Added header: '" + newHeader + "'");
+        String headerVal = headerValuePrefix + token;
+        //future code: (note rearrange code to fit one if nest?)
+        //if add and replace
+        HttpRequest request = httpRequestToBeSent.withHeader(headerName, headerValuePrefix + token);
+        //else if replace and not add and header present
+        //HttpRequest request = httpRequestToBeSent.withUpdatedHeader(headerName, headerValuePrefix + token);
+        //else if add and header not present
+        //HttpRequest request = httpRequestToBeSent.withHeader(headerName, headerValuePrefix + token);
+        //else
+        //return null
 
-        byte[] message = helpers.buildHttpMessage(headers, Arrays.copyOfRange(currentRequest.getRequest(), rqInfo.getBodyOffset(), currentRequest.getRequest().length));
-        currentRequest.setRequest(message);
-        return null;
+        api.logging().logToOutput("Added header: '" + headerName + ": " + headerVal + "'");
+
+        return RequestToBeSentAction.continueWith(request);
     }
 
     @Override
