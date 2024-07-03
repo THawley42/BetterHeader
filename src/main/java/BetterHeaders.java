@@ -3,13 +3,7 @@ import burp.api.montoya.MontoyaApi;
 
 public class BetterHeaders implements BurpExtension {
 
-    final String DEFAULT_HEADER_NAME = "Authorization";
-    final String DEFAULT_HEADER_VALUE_PREFIX = "Bearer ";
-    final String DEFAULT_REGEXP = "access_token\":\"(.*?)\"";
-    final String DEFAULT_HARDCODED_VALUE = "<insert static JWT token here>";
     private static final String SETTINGS_KEY = "BetterHeader.settings.";
-
-    private BurpTab tab;
 
 
     @Override
@@ -18,18 +12,23 @@ public class BetterHeaders implements BurpExtension {
         api.logging().logToOutput("BetterHeaders v0.1");
         api.logging().logToOutput("Created by: Theron Hawley");
 
-        tab = new BurpTab(api);
+        BurpTab tab = new BurpTab(api);
 
         if(api.persistence().preferences().getBoolean(SETTINGS_KEY+"init")== null){
             api.persistence().preferences().setBoolean(SETTINGS_KEY+"init", true);
             api.persistence().preferences().setString(SETTINGS_KEY+"HeaderName", "Authorization");//
             api.persistence().preferences().setString(SETTINGS_KEY+"HeaderPrefix", "Bearer ");//
-            api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsHardcoded", true);//
+            api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsHardcoded", false);//
             api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsRegex", false);//
             api.persistence().preferences().setString(SETTINGS_KEY+"HardcodedText", "<insert static JWT token here>");//
             api.persistence().preferences().setString(SETTINGS_KEY+"RegexText", "access_token\":\"(.*?)\"");
+            api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsAdding", true);
+            api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsReplacing", true);
             //other stuff to set default settings
         }
+
+        api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsAdding", true);
+        api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsReplacing", true);
 
         // set some default values
         //tab.setHeaderName(DEFAULT_HEADER_NAME);
@@ -37,9 +36,12 @@ public class BetterHeaders implements BurpExtension {
         //tab.setRegExpText(DEFAULT_REGEXP);
         //tab.setHardCodedText(DEFAULT_HARDCODED_VALUE);
         // force update the example label
-        //tab.updateFinalResultLabel();
+        tab.updateFinalResultLabel(api);
 
         api.userInterface().registerSuiteTab("BetterHeader", tab);
+        HTTPHandler httphandler = new HTTPHandler(api);
+        //api.http().registerHttpHandler(httphandler);
+        api.http().registerSessionHandlingAction(new SessionHandler(api));
 
     }
 }

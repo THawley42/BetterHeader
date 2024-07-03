@@ -54,18 +54,33 @@ public class HTTPHandler implements HttpHandler {
             return null;
         }
 
-        if (token == null) {
-            // nothing found: failing silently to avoid polluting the logs
-            api.logging().raiseErrorEvent("No token found");
-            return null;
-        }
         String headerName = api.persistence().preferences().getString(SETTINGS_KEY+"HeaderName");
         String headerValuePrefix = api.persistence().preferences().getString(SETTINGS_KEY+"HeaderPrefix");
 
         String headerVal = headerValuePrefix + token;
         //future code: (note rearrange code to fit one if nest?)
+        if (token == null) {
+            // nothing found: failing silently to avoid polluting the logs
+            api.logging().raiseErrorEvent("No token found");
+            return null;
+        }else if(api.persistence().preferences().getBoolean(SETTINGS_KEY+"IsAdding") && api.persistence().preferences().getBoolean(SETTINGS_KEY+"IsReplacing")){
+            HttpRequest request = httpRequestToBeSent.withHeader(headerName, headerValuePrefix + token);
+            api.logging().logToOutput("Added header: '" + headerName + ": " + headerVal + "'");
+            return RequestToBeSentAction.continueWith(request);
+        }else if(!api.persistence().preferences().getBoolean(SETTINGS_KEY+"IsAdding") && api.persistence().preferences().getBoolean(SETTINGS_KEY+"IsReplacing") && httpRequestToBeSent.hasHeader(headerName)){
+            HttpRequest request = httpRequestToBeSent.withUpdatedHeader(headerName, headerValuePrefix + token);
+            api.logging().logToOutput("Added header: '" + headerName + ": " + headerVal + "'");
+            return RequestToBeSentAction.continueWith(request);
+        }else if(api.persistence().preferences().getBoolean(SETTINGS_KEY+"IsAdding") && !api.persistence().preferences().getBoolean(SETTINGS_KEY+"IsReplacing") && !httpRequestToBeSent.hasHeader(headerName)){
+            HttpRequest request = httpRequestToBeSent.withHeader(headerName, headerValuePrefix + token);
+            api.logging().logToOutput("Added header: '" + headerName + ": " + headerVal + "'");
+            return RequestToBeSentAction.continueWith(request);
+        }else{
+            return null;
+        }
+
         //if add and replace
-        HttpRequest request = httpRequestToBeSent.withHeader(headerName, headerValuePrefix + token);
+
         //else if replace and not add and header present
         //HttpRequest request = httpRequestToBeSent.withUpdatedHeader(headerName, headerValuePrefix + token);
         //else if add and header not present
@@ -73,9 +88,7 @@ public class HTTPHandler implements HttpHandler {
         //else
         //return null
 
-        api.logging().logToOutput("Added header: '" + headerName + ": " + headerVal + "'");
 
-        return RequestToBeSentAction.continueWith(request);
     }
 
     @Override
