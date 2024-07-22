@@ -14,6 +14,7 @@ public class BetterHeaders implements BurpExtension {
 
         BurpTab tab = new BurpTab(api);
 
+        //setting up settings if loading the extention for the first time
         if(api.persistence().preferences().getBoolean(SETTINGS_KEY+"init")== null){
             api.persistence().preferences().setBoolean(SETTINGS_KEY+"init", true);
             api.persistence().preferences().setString(SETTINGS_KEY+"HeaderName", "Authorization");//
@@ -24,23 +25,15 @@ public class BetterHeaders implements BurpExtension {
             api.persistence().preferences().setString(SETTINGS_KEY+"RegexText", "access_token\":\"(.*?)\"");
             api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsAdding", true);
             api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsReplacing", true);
-            //other stuff to set default settings
         }
 
         api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsAdding", true);
         api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsReplacing", true);
 
-        // set some default values
-        //tab.setHeaderName(DEFAULT_HEADER_NAME);
-        //tab.setHeaderValuePrefix(DEFAULT_HEADER_VALUE_PREFIX);
-        //tab.setRegExpText(DEFAULT_REGEXP);
-        //tab.setHardCodedText(DEFAULT_HARDCODED_VALUE);
-        // force update the example label
+        // Initiate the burp Tab
         tab.updateFinalResultLabel(api);
-
         api.userInterface().registerSuiteTab("BetterHeader", tab);
-        HTTPHandler httphandler = new HTTPHandler(api);
-        //api.http().registerHttpHandler(httphandler);
+        //Setup the session handler
         api.http().registerSessionHandlingAction(new SessionHandler(api));
 
     }
