@@ -9,8 +9,8 @@ public class BetterHeaders implements BurpExtension {
     @Override
     public void initialize(MontoyaApi api) {
         api.extension().setName("BetterHeaders");
-        api.logging().logToOutput("BetterHeaders v0.1");
-        api.logging().logToOutput("Created by: Theron Hawley");
+        api.logging().logToOutput("BetterHeaders v0.4");
+        api.logging().logToOutput("Created by: lor, Updated and modified by: Theron Hawley");
 
 
 
