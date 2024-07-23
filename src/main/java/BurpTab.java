@@ -208,7 +208,7 @@ public class BurpTab extends javax.swing.JPanel {
     void updateFinalResultLabel(MontoyaApi api) {
 
         //saving the current settings to persistent values
-        api.persistence().preferences().setBoolean(SETTINGS_KEY+"init", true);
+        //api.persistence().preferences().setBoolean(SETTINGS_KEY+"init", true);
         api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsRegex", regExpRadio.isSelected());
         api.persistence().preferences().setBoolean(SETTINGS_KEY+"IsHardcoded", hardCodedRadio.isSelected());
         api.persistence().preferences().setString(SETTINGS_KEY+"RegexText", regExpText.getText());
@@ -255,7 +255,7 @@ public class BurpTab extends javax.swing.JPanel {
         else if (replacebox.isSelected() && !jRadioButton1.isSelected()) {
             finalResultLabel.setText("The header \""+finalText+"\" will replace the "+ headerNameText.getText() + " header in any requests that have it.");
         }
-        else finalResultLabel.setText(finalText);
+        else finalResultLabel.setText("Extension currently disabled.");
 
     }
 
